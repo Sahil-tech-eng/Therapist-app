@@ -8,7 +8,6 @@ from datetime import datetime
 import random
 import sqlite3
 
-
 # --- SQLite DB ---
 DB_FILE = "therapist_chatbot.db"
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
@@ -106,12 +105,10 @@ def crisis_check(text):
     return any(word in text.lower() for word in crisis_words)
 
 def generate_bot_response(user_input, mode="Friendly Friend"):
-    # Crisis handling
     if crisis_check(user_input):
         return ("I hear your pain. You are not alone. "
                 "If you are in India, call Vandrevala Helpline: 1860 266 2345 💙")
     
-    # Canned responses
     friendly_responses = [
         "Tell me more about that 🙂",
         "I understand. How does that make you feel?",
