@@ -3,3 +3,4 @@ deep-translator
 langdetect
 pandas
 plotly
+gTTS
