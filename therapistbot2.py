@@ -7,9 +7,9 @@ import json, uuid
 from datetime import datetime
 import random
 import sqlite3
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
-import threading
-import pyttsx3
+from gtts import gTTS
+import base64
+import tempfile
 
 # --- SQLite DB ---
 DB_FILE = "therapist_chatbot.db"
@@ -34,7 +34,7 @@ if "therapist_mode" not in st.session_state: st.session_state.therapist_mode = N
 if "quote" not in st.session_state: st.session_state.quote = None
 if "growth_plan" not in st.session_state: st.session_state.growth_plan = None
 
-# --- Mobile CSS ---
+# --- Page settings ---
 st.set_page_config(page_title="Therapist Chatbot", page_icon="🛋️", layout="wide")
 st.markdown("""
 <style>
@@ -144,6 +144,12 @@ def display_chat():
             st.markdown(f"**You:** {msg['content']}")
         else:
             st.markdown(f"**Bot:** {msg['content']} {choose_emoji(msg['content'])}")
+            # Generate MP3 for bot response
+            tts = gTTS(msg['content'])
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+            tts.save(tmp_file.name)
+            audio_file = open(tmp_file.name, "rb").read()
+            st.audio(audio_file, format="audio/mp3")
 
 def handle_input():
     user_input = st.session_state.user_input
@@ -159,30 +165,6 @@ def handle_input():
     st.session_state.user_input=""
     update_growth_plan()
     save_session()
-
-# Initialize TTS engine
-engine = pyttsx3.init()
-engine.setProperty("rate", 150)
-
-def speak(text):
-    # Run TTS in separate thread to not block UI
-    threading.Thread(target=engine.say, args=(text,)).start()
-    threading.Thread(target=engine.runAndWait).start()
-
-# Add a Streamlit voice input button
-st.markdown("### 🎤 Speak to the bot")
-if st.button("Start Voice Input"):
-    st.info("Listening... Speak now!")
-    # Use webrtc to capture audio
-    webrtc_streamer(key="voice_input", mode=WebRtcMode.SENDONLY)
-    # In Streamlit Cloud we can’t auto-convert audio, so instruct user:
-    st.warning("After speaking, type any text you said in the box below to continue.")
-
-# After bot generates response, play it
-for msg in st.session_state.history[-1:]:
-    if msg["role"]=="bot":
-        speak(msg["content"])
-
 
 def generate_session_summary():
     if not st.session_state.history: 
