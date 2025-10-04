@@ -1,14 +1,13 @@
-import os
-import sqlite3
-import uuid
-from datetime import datetime
 import streamlit as st
-from deep_translator import GoogleTranslator
-from langdetect import detect
 import pandas as pd
 import plotly.express as px
-import json
+from deep_translator import GoogleTranslator
+from langdetect import detect
+import json, uuid
+from datetime import datetime
 import random
+import sqlite3
+
 
 # --- SQLite DB ---
 DB_FILE = "therapist_chatbot.db"
