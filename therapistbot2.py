@@ -7,7 +7,31 @@ import json, uuid
 from datetime import datetime
 import random
 import sqlite3
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
+import threading
+import pyttsx3
 
+engine = pyttsx3.init()
+engine.setProperty("rate", 150)
+
+def speak(text):
+    # Run TTS in separate thread to not block UI
+    threading.Thread(target=engine.say, args=(text,)).start()
+    threading.Thread(target=engine.runAndWait).start()
+
+# Add a Streamlit voice input button
+st.markdown("### 🎤 Speak to the bot")
+if st.button("Start Voice Input"):
+    st.info("Listening... Speak now!")
+    # Use webrtc to capture audio
+    webrtc_streamer(key="voice_input", mode=WebRtcMode.SENDONLY)
+    # In Streamlit Cloud we can’t auto-convert audio, so instruct user:
+    st.warning("After speaking, type any text you said in the box below to continue.")
+
+# After bot generates response, play it
+for msg in st.session_state.history[-1:]:
+    if msg["role"]=="bot":
+        speak(msg["content"])
 # --- SQLite DB ---
 DB_FILE = "therapist_chatbot.db"
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
